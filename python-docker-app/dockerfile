@@ -1,0 +1,8 @@
+FROM python  
+RUN apt-get update && apt-get install -y supervisor
+RUN mkdir -p /var/log/supervisor
+COPY . /src  
+WORKDIR /src
+RUN pip3 install -r requirements.txt
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+CMD ["/usr/bin/supervisord"]
