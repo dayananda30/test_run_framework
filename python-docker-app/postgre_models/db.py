@@ -20,7 +20,7 @@ class DBSession:
         testcase = TestRun(created_at=datetime.utcnow(), status="Queued")
         self.session.add(testcase)
         self.session.commit()
-        print(testcase.id)
+        return testcase.id
 
     def update_new_query(self, test_id, update_data):
         start_date = datetime.utcnow()

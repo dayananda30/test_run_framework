@@ -34,7 +34,7 @@ def process_test_run_request(ch, method, properties, body):
         start_date = datetime.utcnow()
 
         dest_path = "/src/test_scripts"
-        src_path = "/mnt/test_run_"+msg_dict['id']
+        src_path = "/mnt/test_run_"+str(msg_dict['id'])
         delete_folder(dest_path)
         copy(src_path, dest_path)
 
@@ -43,7 +43,7 @@ def process_test_run_request(ch, method, properties, body):
         update_data = {'started_at': start_date, 'finished_at': end_date, 'environment': 'test_env_1', "status": "Complete", "logs": result}
         db = DBSession()
         #db.create_entry()
-        db.update_new_query(3, update_data)
+        db.update_new_query(msg_dict['id'], update_data)
         db.session_close()
         # Removing the message from queue.
         ch.basic_ack(delivery_tag=method.delivery_tag)

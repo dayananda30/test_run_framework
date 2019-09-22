@@ -1,11 +1,15 @@
 import logging as logger
 import sys
 
+from publisher import publish_test
+from postgre_models.db import DBSession
+from functions import copy
+
 from os.path import dirname, abspath, join, exists
 from argparse import ArgumentParser
 from time import sleep
 
-current_dir = dirname(dirname(abspath(__file__)))
+current_dir = dirname(abspath(__file__))
 
 sys.path.append(current_dir)
 
@@ -48,8 +52,16 @@ def main(csv_files_path, local_download_path):
                     logger.info("###############END###########################\n")
                 else:
                     #Use default path from software.
-                    print("Default path....")
+                    src_path = current_dir+"/test_scripts"
                     print(current_dir)
+                db = DBSession()
+                test_id = db.create_entry()
+
+                dest_path = current_dir+"/mnt/test_run_"+str(test_id)
+                copy(src_path, dest_path)
+                publish_test(test_id)
+                print("Test execution started and test id - ", test_id)
+
                 break
         elif int(option) == 4:
             print("##############################################")
