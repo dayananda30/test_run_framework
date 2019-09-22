@@ -1,14 +1,22 @@
 import pika
-
 import pika
 import json
 import sys
 from socket import gaierror
+from functions import get_config
+from os.path import dirname, abspath
+
+current_dir = dirname(abspath(__file__))
+
 
 def publish_test(test_id):
+    config_path = current_dir+"/config.yaml"
+    rbmq_username = get_config("RABBITMQ_SERVER_DETAILS", "USERNAME", config_path)
+    rbmq_password = get_config("RABBITMQ_SERVER_DETAILS", "PASSWORD", config_path)
+    rbmq_ip = get_config("RABBITMQ_SERVER_DETAILS", "SERVER_IP", config_path)
     try:
-        credentials = pika.PlainCredentials("sid", "test")
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost',
+        credentials = pika.PlainCredentials(rbmq_username, rbmq_password)
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=rbmq_ip,
                                                                        credentials=credentials))
     except gaierror as e:
         print("")

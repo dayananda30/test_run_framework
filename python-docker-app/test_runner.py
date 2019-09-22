@@ -1,5 +1,6 @@
 import logging as logger
 import sys
+import os
 
 from publisher import publish_test
 from postgre_models.db import DBSession
@@ -37,18 +38,20 @@ def main(csv_files_path, local_download_path):
             print("##############################################")
             print("You have selected Test Run option \n")
             while True:
-                initial_setup_options = input("""Please provide test scripts path:
+                sub_option = input("""Please provide test scripts path:
 
                 Example: Following format input is expected
                         /home/test/test_scripts
                 or Default path will be selected from software.
                 """)
 
-                if initial_setup_options:
+                if sub_option:
                     #User input
-                    print(initial_setup_options)
-                    logger.info("#############################################\n")
-                    logger.info("###############END###########################\n")
+                    if os.path.isdir(sub_option):
+                        src_path =sub_option
+                    else:
+                        print("Please check script path - {}".format(sub_option))
+                        continue
                 else:
                     #Use default path from software.
                     src_path = current_dir+"/test_scripts"
@@ -82,30 +85,28 @@ def main(csv_files_path, local_download_path):
         elif int(option) == 3:
             print("##############################################")
             print("You have selected Get detailed log for the test run option \n")
-            sleep(2)
+            sleep(1)
 
             while True:
-                initial_setup_options = input("""Please provide test run id:
+                sub_option = input("""Please provide test run id:
 
                 Example: 
                         12 
                 """)
-                if not initial_setup_options.isdigit(): 
+                if not sub_option.isdigit(): 
                     print("Please enter valid test run id.")
                     continue
 
-                if resume_flag:
-                    for item in initial_setup_options:
-                        if item == 'a':
-                            logger.info("###############START#########################")
-                            logger.info('Salt CherryPy is installed and configured')
-                            logger.info("###############END###########################\n")
-                        if item == 'b':
-                            logger.info("###############START#########################")
-                            logger.info("###############END###########################\n")
-
-                    break
-        elif int(option) == 2:
+                db = DBSession()
+                obj = db.get_one_record(sub_option)
+                db.session_close()
+                
+                if type(obj) == str:
+                    print(obj)
+                else:
+                    print(obj['logs'])
+                break
+        elif int(option) == 4:
             options = 'abcd'
             print("##############################################")
             print("You have selected configuration update (YAML update) option \n")
@@ -145,9 +146,6 @@ def main(csv_files_path, local_download_path):
                 else:
                     print('Sorry, that was incorrect input')
                     continue
-
-        elif int(option) == 3:
-            logger.info("###############START#########################")
 
         else:
             print('Sorry, that was incorrect input')

@@ -1,5 +1,6 @@
 import os
 import time
+from os.path import dirname, abspath
 
 from postgre_models.models import TestRun
 from datetime import datetime
@@ -7,11 +8,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
+from functions import get_config
+
+current_dir = dirname(dirname(abspath(__file__)))
+
+
 class DBSession:
     def __init__(self):
-        self.dbusername = "postgres" 
-        self.dbpass = "tnt" 
-        self.engine = create_engine('postgresql+psycopg2://{}:{}@172.17.0.3:5432/test_db'.format(self.dbusername, self.dbpass))
+        print(current_dir)
+        config_path = current_dir+"/config.yaml"
+        self.db_username = get_config("POSTGRES_DB_DETAILS", "USERNAME", config_path)
+        self.db_password = get_config("POSTGRES_DB_DETAILS", "PASSWORD", config_path) 
+        self.db_ip_port = get_config("POSTGRES_DB_DETAILS", "SERVER_IP", config_path)+ ":"\
+                           + get_config("POSTGRES_DB_DETAILS", "PORT", config_path)
+        self.engine = create_engine('postgresql+psycopg2://{}:{}@{}/test_db'.format(self.db_username, self.db_password, self.db_ip_port))
         self.session = sessionmaker(bind=self.engine)()
         self.session.connection().connection.set_isolation_level(1)
 
@@ -26,11 +36,8 @@ class DBSession:
 
     def update_new_query(self, test_id, update_data):
         start_date = datetime.utcnow()
-        #time.sleep(61)
         end_date = datetime.utcnow()
-#        update_data = {'started_at': start_date, 'finished_at': end_date, 'environment': 'test_env_1'}
         self.session.query(TestRun).filter(TestRun.id == test_id).update(update_data)
-        #self.session.query(TestRun).filter(TestRun.id == test_id).update({'started_at': start_date})
         self.session.commit()
 
     def update_query(self, id):
