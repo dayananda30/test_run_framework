@@ -4,6 +4,7 @@ import sys
 from publisher import publish_test
 from postgre_models.db import DBSession
 from functions import copy
+from prettytable import PrettyTable
 
 from os.path import dirname, abspath, join, exists
 from argparse import ArgumentParser
@@ -27,15 +28,14 @@ def main(csv_files_path, local_download_path):
     while True:
         option = input ("""Please choose one option from following:
         1.      Test Run	
-        2.	Configuration update
-        3.	Validation/Health Check
+        2.      Show all Test results	
+        3.      Get detailed log for the test run	
         4.      Initial Setup
         """)
 
         if int(option) == 1:
             print("##############################################")
-            print("You have selected Upgrade option \n")
-            options = 'abcde'
+            print("You have selected Test Run option \n")
             while True:
                 initial_setup_options = input("""Please provide test scripts path:
 
@@ -43,7 +43,6 @@ def main(csv_files_path, local_download_path):
                         /home/test/test_scripts
                 or Default path will be selected from software.
                 """)
-                initial_setup_options = initial_setup_options.split()
 
                 if initial_setup_options:
                     #User input
@@ -56,37 +55,45 @@ def main(csv_files_path, local_download_path):
                     print(current_dir)
                 db = DBSession()
                 test_id = db.create_entry()
-
+                db.session_close()
                 dest_path = current_dir+"/mnt/test_run_"+str(test_id)
                 copy(src_path, dest_path)
                 publish_test(test_id)
                 print("Test execution started and test id - ", test_id)
 
                 break
-        elif int(option) == 4:
-            print("##############################################")
-            print("You have selected Initial Configuration option \n")
-            logger.info("###############START#########################")
 
-            logger.info("###############END###########################\n")
+        elif int(option) == 2:
+            print("##############################################")
+            print("You have selected Show all Test results option \n")
+            db = DBSession()
+            list_objs = db.get_all_records()
+            db.session_close()
+
+            x = PrettyTable()
+
+            x.field_names = ["Test Id", "Environment", "Test", "Created at", "Started at", "Finished at", "Status"]
+            for obj in list_objs:
+                x.add_row([obj['id'], obj['environment'], obj['test'], obj['created_at'],
+                          obj['started_at'], obj['finished_at'], obj['status']])
+            print(x)
+            break
+
+        elif int(option) == 3:
+            print("##############################################")
+            print("You have selected Get detailed log for the test run option \n")
             sleep(2)
 
-            options = 'ab'
             while True:
-                initial_setup_options = input("""Choose one or more options separated by space for Initial configuration:
-                a.	Salt CherryPy
-                b.	Bridgeburner client
+                initial_setup_options = input("""Please provide test run id:
 
-                Example: For Salt CherryPy and Bridgeburner client configuration, pass the following input
-                        a b
+                Example: 
+                        12 
                 """)
-                initial_setup_options = initial_setup_options.split()
-                resume_flag = 1
-                for item in initial_setup_options:
-                    if item in options:
-                        continue
-                    else:
-                        resume_flag = 0
+                if not initial_setup_options.isdigit(): 
+                    print("Please enter valid test run id.")
+                    continue
+
                 if resume_flag:
                     for item in initial_setup_options:
                         if item == 'a':

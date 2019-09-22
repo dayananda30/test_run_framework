@@ -4,6 +4,8 @@ from datetime import datetime
 import sqlalchemy
 import time
 
+from sqlalchemy.orm.exc import NoResultFound
+
 class DBSession:
     def __init__(self):
         self.dbusername = "postgres" 
@@ -37,6 +39,19 @@ class DBSession:
         self.session.execute(query)
         self.session.commit()
 
+    def test_query(self):
+        list_obj = []
+        for obj in self.session.query(TestRun).all():
+            list_obj.append(obj.__dict__)
+        return list_obj
+
+    def test_id_query(self, test_id):
+        try:
+            result = self.session.query(TestRun).filter(TestRun.id==test_id).one()
+            return result.__dict__
+        except NoResultFound:
+            return "Test case with id - {} not found.".format(test_id)
+
     def get_all_records(self):
         query = sqlalchemy.select([TestRun])
         return self.session.execute(query).fetchall()
@@ -53,8 +68,20 @@ if __name__ == "__main__":
     db = DBSession()
     #db.create_entry()
     #db.update_new_query(3)
-    db_output = db.get_one_record(3)
-    logs = db_output[-1][-1]
-    print(logs)
-    
+    #db_output = db.get_one_record(3)
+    #logs = db_output[-1][-1]
+    #print(logs)
+
+    #for a in db.test_query():
+    #    print(a.__dict__)
+
+    print(db.test_query())
+    #row = db.test_id_query(1)
+    #if type(row) == str:
+    #    print(row)
+    #else:
+    #    print(row)
+    #print(db.test_id_query(8)['id'])
+
+#    print(db.get_one_record(8))
     db.session_close()

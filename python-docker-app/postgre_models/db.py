@@ -1,9 +1,11 @@
 import os
+import time
+
 from postgre_models.models import TestRun
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import time
+from sqlalchemy.orm.exc import NoResultFound
 
 class DBSession:
     def __init__(self):
@@ -39,13 +41,17 @@ class DBSession:
         self.session.commit()
 
     def get_all_records(self):
-        query = sqlalchemy.select([TestRun])
-        return self.session.execute(query).fetchall()
+        list_obj = []
+        for obj in self.session.query(TestRun).all():
+            list_obj.append(obj.__dict__)
+        return list_obj
 
-    def get_one_record(self, id):
-        query = sqlalchemy.select([TestRun]).where(TestRun.id==id)
-        ResultProxy = self.session.execute(query)
-        return ResultProxy.fetchall()
+    def get_one_record(self, test_id):
+        try:
+            result = self.session.query(TestRun).filter(TestRun.id==test_id).one()
+            return result.__dict__
+        except NoResultFound:
+            return "Test case with id - {} not found.".format(test_id)
 
     def session_close(self):
         self.session.close()
