@@ -49,6 +49,7 @@ def main(csv_files_path, local_download_path):
                 else:
                     #Use default path from software.
                     print("Default path....")
+                    print(current_dir)
                 break
         elif int(option) == 4:
             print("##############################################")
