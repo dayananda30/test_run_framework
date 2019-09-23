@@ -9,9 +9,9 @@ import yaml
 def get_config(appliance, param, yaml_file_path):
     """This function gives the yaml value corresponding to the parameter
     sample Yaml file
-        xstream_details:
-            xtm_host: 10.100.26.90
-    :param appliance: The header name as mentioned in the yaml file (ex:xstream_details)
+        rabbitmq_server_details:
+            server_ip: 1.1.1.1
+    :param appliance: The header name as mentioned in the yaml file (ex:rabbitmq_server_details)
     :param param: The parameter name who's value is to be determined (ex: xtm_host)
     :param yaml_file_path: Path of yaml file, Default will the config.yaml file
     :return: value corresponding to the parameter in yaml file
@@ -48,13 +48,3 @@ def copy(src, dest):
             shutil.copy(src, dest)
         else:
             print('Directory not copied. Error: %s' % e)
-
-def touch(fname):
-    if os.path.exists(fname):
-        os.utime(fname, None)
-    else:
-        open(fname, 'a').close()
-
-if __name__ == '__main__':
-    print(get_config("RABBITMQ_SERVER_DETAILS", "SERVER_IP", "/home/sheetal/sid/code_space/project_space/test_framework/python-docker-app/config.yaml"))
-    print(get_config("RABBITMQ_SERVER_DETAILS", "USERNAME", "/home/sheetal/sid/code_space/project_space/test_framework/python-docker-app/config.yaml"))
