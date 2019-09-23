@@ -15,7 +15,7 @@ current_dir = dirname(abspath(__file__))
 
 sys.path.append(current_dir)
 
-def main(csv_files_path, local_download_path):
+def main():
 
     logger.info("###############START#########################")
 
@@ -55,7 +55,6 @@ def main(csv_files_path, local_download_path):
                 else:
                     #Use default path from software.
                     src_path = current_dir+"/test_scripts"
-                    print(current_dir)
                 db = DBSession()
                 test_id = db.create_entry()
                 db.session_close()
@@ -110,42 +109,6 @@ def main(csv_files_path, local_download_path):
             options = 'abcd'
             print("##############################################")
             print("You have selected configuration update (YAML update) option \n")
-            while True:
-                yaml_update = input("""Choose one or more options separated by space for configuration update:
-                  a.	Middleware
-                  b.	TAMS
-                  c.	Worker
-                  d.	All above
-                  e.    Bridgeburvner Certificate
-
-                  Example: For Middleware and worker configuration update, pass the following input
-                                a c
-                  """)
-                yaml_update = yaml_update.split()
-                resume_flag = 1
-                for item in yaml_update:
-                    if item in options:
-                        continue
-                    else:
-                        resume_flag = 0
-
-                if resume_flag:
-                    for item in yaml_update:
-                        if item == 'a' or item == 'd':
-                            logger.info("###############START#########################")
-
-                            logger.info("Middleware configuration update is started \n")
-                            logger.info("###############END###########################\n")
-
-                        if item == 'b' or item == 'd':
-                            logger.info("###############START#########################")
-                            logger.info("TAMS configuration update is started \n")
-                            logger.info("###############END###########################\n")
-
-                    break
-                else:
-                    print('Sorry, that was incorrect input')
-                    continue
 
         else:
             print('Sorry, that was incorrect input')
@@ -162,15 +125,4 @@ def main(csv_files_path, local_download_path):
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser(description='Arguments for upgrading/config update/validation')
-    parser.add_argument('-csv', '--csv_path',
-                        default=join(current_dir, 'config', 'csv_files'),
-                        action='store',
-                        help='Deployment CSV file location')
-    parser.add_argument('-b', '--bundles',
-                        default=join(current_dir, 'config', 'bundles'),
-                        action='store',
-                        help='Location of the dir where all bundles need to download')
-
-    args = parser.parse_args()
-    main(args.csv_path, args.bundles)
+    main()
