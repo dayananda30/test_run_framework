@@ -2,9 +2,10 @@ import os
 import subprocess
 import errno
 import shutil
-
 import yaml
-
+import stat
+import glob 
+import re
 
 def get_config(appliance, param, yaml_file_path):
     """This function gives the yaml value corresponding to the parameter
@@ -56,6 +57,51 @@ def touch(fname):
     else:
         open(fname, 'a').close()
 
+def get_list_scripts(scripts_path, file_ext):
+    return glob.glob(os.path.join(scripts_path, file_ext))
+
+def start_test_execution(scripts_path):
+    bash_scripts = get_list_scripts(scripts_path, "*.sh")
+    python_scripts = get_list_scripts(scripts_path, "*.py")
+
+    consolidated_output = ''
+    if len(python_scripts) > 0 :
+        py_test_output = test_runner_for_python(scripts_path)
+        consolidated_output = "\n".join([consolidated_output, py_test_output])
+    
+    if len(bash_scripts) > 0 :
+        bash_test_output = test_runner_for_bash(scripts_path)
+        consolidated_output = "\n".join([consolidated_output, bash_test_output])
+    return consolidated_output
+
+def test_runner_for_bash(scripts_path):
+    list_test_scripts = get_list_scripts(scripts_path, "*.sh")
+    consolidated_output = ''
+    test_results = {'pass': 0, 'fail': 0}
+    if len(list_test_scripts) > 0:
+        for script in list_test_scripts:
+            st = os.stat(script)
+            os.chmod(script, st.st_mode | stat.S_IEXEC)
+            cmd = "/bin/sh "+ script 
+            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT, close_fds=True, encoding='utf-8')
+            output = p.stdout.read()
+            consolidated_output = "\n".join([consolidated_output, output])
+            last_line = output.strip().split("\n")[-1]
+            last_line = last_line.replace("=", "")
+            results = last_line.split(",")
+            for each_status in results:
+                if "pass" in each_status.lower():
+                    pass_count = int(re.search(r'\d+', each_status).group())
+                    test_results['pass'] += pass_count
+                elif "fail" in each_status.lower():
+                    fail_count = int(re.search(r'\d+', each_status).group())
+                    test_results['fail'] += fail_count
+        bash_test_results = "Bash script test results : "
+        flat_results = ', '.join("{!s}={!r}".format(k,v) for (k,v) in test_results.items())
+        bash_test_results = bash_test_results + "" + flat_results
+        consolidated_output = "\n".join([consolidated_output, bash_test_results])
+    return consolidated_output  
 
 def test_runner_for_python(scripts_path):
     cmd = "pytest "+ scripts_path +" -v"
@@ -77,3 +123,5 @@ def test_runner_for_python(scripts_path):
 
 #copy("/home/sheetal/tests", "/home/sheetal/dummy")
 #delete_folder("/home/sheetal/dummy")
+#print(test_runner_for_bash("/home/sheetal/sid/code_space/project_space/test_framework/python-docker-app/test_scripts"))
+print(start_test_execution("/home/sheetal/sid/code_space/project_space/test_framework/python-docker-app/test_scripts"))
