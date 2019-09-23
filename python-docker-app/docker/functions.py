@@ -64,20 +64,36 @@ def start_test_execution(scripts_path):
     bash_scripts = get_list_scripts(scripts_path, "*.sh")
     python_scripts = get_list_scripts(scripts_path, "*.py")
 
+    py_test_status = ''
+    bash_test_status = ''
     consolidated_output = ''
     if len(python_scripts) > 0 :
         py_test_output = test_runner_for_python(scripts_path)
+        last_line = py_test_output.strip().split("\n")[-1]
+        last_line = last_line.replace("=", "")
+        if "in" in last_line:
+            last_line = last_line.split("in")
+            last_line = last_line[0]
+        py_test_status = "Python scripts test results : " + last_line
+        py_test_output = py_test_output[:py_test_output.rfind('\n')] 
         consolidated_output = "\n".join([consolidated_output, py_test_output])
-    
     if len(bash_scripts) > 0 :
         bash_test_output = test_runner_for_bash(scripts_path)
+        last_line = bash_test_output.strip().split("\n")[-1]
+        bash_test_status = last_line 
+        bash_test_output = bash_test_output[:bash_test_output.rfind('\n')] 
         consolidated_output = "\n".join([consolidated_output, bash_test_output])
+
+    if py_test_status:
+        consolidated_output = "\n".join([consolidated_output, py_test_status])
+    if bash_test_status:
+        consolidated_output = "\n".join([consolidated_output, bash_test_status])
     return consolidated_output
 
 def test_runner_for_bash(scripts_path):
     list_test_scripts = get_list_scripts(scripts_path, "*.sh")
     consolidated_output = ''
-    test_results = {'pass': 0, 'fail': 0}
+    test_results = {'passed': 0, 'failed': 0}
     if len(list_test_scripts) > 0:
         for script in list_test_scripts:
             st = os.stat(script)
@@ -93,12 +109,12 @@ def test_runner_for_bash(scripts_path):
             for each_status in results:
                 if "pass" in each_status.lower():
                     pass_count = int(re.search(r'\d+', each_status).group())
-                    test_results['pass'] += pass_count
+                    test_results['passed'] += pass_count
                 elif "fail" in each_status.lower():
                     fail_count = int(re.search(r'\d+', each_status).group())
-                    test_results['fail'] += fail_count
+                    test_results['failed'] += fail_count
         bash_test_results = "Bash script test results : "
-        flat_results = ', '.join("{!s}={!r}".format(k,v) for (k,v) in test_results.items())
+        flat_results = ', '.join("{!r} {!s}".format(v,k) for (k,v) in test_results.items())
         bash_test_results = bash_test_results + "" + flat_results
         consolidated_output = "\n".join([consolidated_output, bash_test_results])
     return consolidated_output  
@@ -124,4 +140,4 @@ def test_runner_for_python(scripts_path):
 #copy("/home/sheetal/tests", "/home/sheetal/dummy")
 #delete_folder("/home/sheetal/dummy")
 #print(test_runner_for_bash("/home/sheetal/sid/code_space/project_space/test_framework/python-docker-app/test_scripts"))
-print(start_test_execution("/home/sheetal/sid/code_space/project_space/test_framework/python-docker-app/test_scripts"))
+#print(start_test_execution("/home/sheetal/sid/code_space/project_space/test_framework/python-docker-app/test_scripts"))

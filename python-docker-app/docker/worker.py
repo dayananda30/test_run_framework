@@ -7,7 +7,7 @@ from datetime import datetime
 import socket
 
 from postgre_models.db import DBSession
-from functions import get_config, test_runner_for_python, delete_folder, copy
+from functions import get_config, start_test_execution, delete_folder, copy
 from os.path import dirname, abspath
 
 current_dir = dirname(abspath(__file__))
@@ -49,7 +49,7 @@ def process_test_run_request(ch, method, properties, body):
         delete_folder(dest_path)
         copy(src_path, dest_path)
 
-        result = test_runner_for_python(dest_path)
+        result = start_test_execution(dest_path)
         end_date = datetime.utcnow()
         update_data = {'finished_at': end_date, 'status': 'Complete', 'logs': result}
         db = DBSession()
