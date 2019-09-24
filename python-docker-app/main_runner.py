@@ -1,4 +1,3 @@
-import logging as logger
 import sys
 import os
 
@@ -17,26 +16,27 @@ sys.path.append(current_dir)
 
 def main():
 
-    logger.info("###############START#########################")
-
-#    path_of_deployment_yaml = join(current_dir, 'config', 'deployment')
-#    yaml_file_list = list_of_yaml_files(path_of_deployment_yaml)
-    logger.info('Converted deployment CSV input to yaml format')
-
-    logger.info("###############END###########################\n")
-    sleep(2)
+    sleep(1)
 
     while True:
         option = input ("""Please choose one option from following:
         1.      Test Run	
         2.      Show all Test results	
         3.      Get detailed log for the test run	
-        4.      Initial Setup
         """)
 
         if int(option) == 1:
             print("##############################################")
             print("You have selected Test Run option \n")
+            test_run_name = "Test Run" 
+            sub_name_option = input("""Please provide Test Run name for reference:
+
+            Example: Test Cycle 1 
+                 or Default name (Test Run) will be set.
+            """)
+            if sub_name_option:
+                #User input
+                test_run_name = sub_name_option
             while True:
                 sub_option = input("""Please provide test scripts path:
 
@@ -57,6 +57,8 @@ def main():
                     src_path = current_dir+"/test_scripts"
                 db = DBSession()
                 test_id = db.create_entry()
+                update_data = {'test': test_run_name}
+                db.update_new_query(test_id, update_data)
                 db.session_close()
                 dest_path = current_dir+"/mnt/test_run_"+str(test_id)
                 copy(src_path, dest_path)
@@ -105,20 +107,10 @@ def main():
                 else:
                     print(obj['logs'])
                 break
-        elif int(option) == 4:
-            options = 'abcd'
-            print("##############################################")
-            print("You have selected configuration update (YAML update) option \n")
-
         else:
             print('Sorry, that was incorrect input')
             continue
         resume_flag = 1
-
-        logger.info("###############START#########################")
-        logger.info("END OF TEST MODULES")
-
-        logger.info("###############END###########################\n")
 
         break
 
